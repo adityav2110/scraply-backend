@@ -8,7 +8,6 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 import syllapy
 from collections import Counter
-import string
 
 # NLTK setup
 nltk.download('punkt')
@@ -17,6 +16,10 @@ nltk.download('stopwords')
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Text Analyzer API is running"
 
 @app.route("/analyze", methods=["POST"])
 def analyze_text():
@@ -27,11 +30,16 @@ def analyze_text():
         return jsonify({"error": "URL is required"}), 400
 
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
+        response.encoding = response.apparent_encoding
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Text extraction
-        text = ' '.join(soup.get_text().strip().split())
+        # Remove script and style elements
+        for tag in soup(["script", "style"]):
+            tag.extract()
+
+        # Extract clean text
+        text = ' '.join(soup.get_text().split())
 
         # HTML tag frequency
         tag_counts = Counter([tag.name for tag in soup.find_all()])
@@ -45,8 +53,8 @@ def analyze_text():
         words_filtered = [word.lower() for word in words if word.lower() not in stop_words and word.isalpha()]
 
         blob = TextBlob(text)
-        positive_score = sum([1 for sentence in blob.sentences if sentence.sentiment.polarity > 0])
-        negative_score = sum([1 for sentence in blob.sentences if sentence.sentiment.polarity < 0])
+        positive_score = sum(1 for sentence in blob.sentences if sentence.sentiment.polarity > 0)
+        negative_score = sum(1 for sentence in blob.sentences if sentence.sentiment.polarity < 0)
         polarity_score = blob.sentiment.polarity
         subjectivity_score = blob.sentiment.subjectivity
 
@@ -60,7 +68,7 @@ def analyze_text():
         word_count = len(words_filtered)
         syllables_per_word = sum(syllapy.count(word) for word in words) / max(len(words), 1)
         personal_pronouns = ['i', 'me', 'my', 'we', 'our', 'ours']
-        personal_pronoun_count = sum([1 for word in words if word.lower() in personal_pronouns])
+        personal_pronoun_count = sum(1 for word in words if word.lower() in personal_pronouns)
         avg_word_length = sum(len(word) for word in words) / max(len(words), 1)
 
         # Word frequency (excluding punctuation)
@@ -91,6 +99,8 @@ def analyze_text():
         return jsonify(result)
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
