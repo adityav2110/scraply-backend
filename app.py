@@ -3,6 +3,7 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 import requests
 import nltk
+nltk.download("punkt")
 from textblob import TextBlob
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
