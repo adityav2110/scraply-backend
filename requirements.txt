@@ -1,7 +1,8 @@
-Flask
-gunicorn
+flask
+flask-cors
 beautifulsoup4
 requests
-nltk
 textblob
+nltk
 syllapy
+gunicorn
