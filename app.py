@@ -3,7 +3,10 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 import requests
 import nltk
+import nltk
 nltk.download("punkt")
+nltk.download("punkt_tab")  # 👈 This fixes the error you're seeing
+nltk.download("stopwords")
 from textblob import TextBlob
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
