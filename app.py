@@ -9,13 +9,8 @@ from nltk.corpus import stopwords
 import syllapy
 from collections import Counter
 
-# NLTK setup
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-
 app = Flask(__name__)
-CORS(app)  # Enable CORS
+CORS(app)
 
 @app.route("/", methods=["GET"])
 def home():
@@ -34,18 +29,14 @@ def analyze_text():
         response.encoding = response.apparent_encoding
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Remove script and style elements
         for tag in soup(["script", "style"]):
             tag.extract()
 
-        # Extract clean text
         text = ' '.join(soup.get_text().split())
 
-        # HTML tag frequency
         tag_counts = Counter([tag.name for tag in soup.find_all()])
         html_tags = [{"tag": tag, "count": count} for tag, count in tag_counts.items()]
 
-        # NLP processing
         sentences = sent_tokenize(text)
         words = word_tokenize(text)
         stop_words = set(stopwords.words('english'))
@@ -71,9 +62,8 @@ def analyze_text():
         personal_pronoun_count = sum(1 for word in words if word.lower() in personal_pronouns)
         avg_word_length = sum(len(word) for word in words) / max(len(words), 1)
 
-        # Word frequency (excluding punctuation)
         word_freq = Counter(words_filtered)
-        least_common = word_freq.most_common()[:-6:-1]  # Last 5 items
+        least_common = word_freq.most_common()[:-6:-1]
         least_frequent_words = [{"word": word, "count": count} for word, count in least_common]
 
         result = {
